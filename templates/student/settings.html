@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="section section-wide">
+  <div class="section-head head-row">
+    <div>
+      <h1 class="h1">Settings</h1>
+      <p class="sub">Avatar + display name (saved to SQLite). Demo-friendly.</p>
+    </div>
+    {% if saved %}
+      <span class="badge">Saved</span>
+    {% endif %}
+  </div>
+
+  {% if error %}
+    <div class="alert">{{ error }}</div>
+  {% endif %}
+
+  <div class="grid">
+    <div class="col-5">
+      <div class="panel">
+        <div class="label">Avatar</div>
+        <div class="muted small">PNG/JPG/WEBP, up to ~2.5MB.</div>
+        <div class="divider"></div>
+
+        <div class="row" style="justify-content:flex-start; gap:12px;">
+          {% if me and me["avatar_path"] %}
+            <img class="avatar avatar-lg" src="{{ me['avatar_path'] }}" alt="avatar">
+          {% else %}
+            <div class="avatar avatar-lg avatar-fallback">A</div>
+          {% endif %}
+          <div>
+            <div class="label">{{ (me["display_name"] if me and me["display_name"] else "Student") }}</div>
+            <div class="muted small">@{{ (me["username"] if me else "student") }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-7">
+      <div class="panel">
+        <form method="post" enctype="multipart/form-data" class="form">
+          <label class="lbl">Display name</label>
+          <input class="input" name="display_name" value="{{ (me['display_name'] if me else '') }}" placeholder="Student">
+
+          <label class="lbl">Goal</label>
+          <select class="input" name="goal">
+            <option>General English</option>
+            <option>IELTS</option>
+            <option>Business</option>
+          </select>
+
+          <label class="lbl">Upload avatar</label>
+          <input class="input" type="file" name="avatar" accept="image/png,image/jpeg,image/webp">
+
+          <button class="btn primary full" type="submit">Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

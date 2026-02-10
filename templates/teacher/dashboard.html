@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="section">
+  <div class="section-head">
+    <h1 class="h1">Teacher</h1>
+    <p class="sub">Manage students. Clean wide dashboard.</p>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-num">{{ total_students }}</div>
+      <div class="kpi-label">Students</div>
+    </div>
+
+    <a class="kpi kpi-link" href="/teacher/students">
+      <div class="kpi-num">→</div>
+      <div class="kpi-label">Open students</div>
+    </a>
+
+    <a class="kpi kpi-link" href="/teacher/students/new">
+      <div class="kpi-num">+</div>
+      <div class="kpi-label">Create student</div>
+    </a>
+  </div>
+</section>
+{% endblock %}

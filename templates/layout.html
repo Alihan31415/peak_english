@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ title or "Peak English" }}</title>
+  <link rel="stylesheet" href="/static/app.css?v=1">
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">Peak English</a>
+
+      <nav class="nav">
+        {% if request.session.get("role") == "student" %}
+          <a class="nav-link" href="/student/dashboard">Dashboard</a>
+          <a class="nav-link" href="/student/speaking">Speaking</a>
+          <a class="nav-link" href="/student/chat">Chat</a>
+          <a class="nav-link" href="/student/settings">Settings</a>
+        {% elif request.session.get("role") == "teacher" %}
+          <a class="nav-link" href="/teacher/dashboard">Dashboard</a>
+          <a class="nav-link" href="/teacher/students">Students</a>
+        {% endif %}
+
+        {% if request.session.get("uid") %}
+          <a class="nav-pill" href="/logout">Logout</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="wrap">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</body>
+</html>
