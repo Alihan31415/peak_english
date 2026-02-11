@@ -13,12 +13,10 @@ templates = Jinja2Templates(directory="templates")
 def _seed_defaults():
     init_db()
     conn = get_conn()
-    # teacher
     conn.execute("""
       INSERT OR IGNORE INTO users(username, password_hash, role, display_name)
       VALUES (?, ?, 'teacher', ?)
     """, ("teacher", hash_pw("teacher123"), "Teacher"))
-    # demo student
     conn.execute("""
       INSERT OR IGNORE INTO users(username, password_hash, role, display_name)
       VALUES (?, ?, 'student', ?)

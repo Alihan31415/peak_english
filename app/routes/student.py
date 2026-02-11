@@ -74,7 +74,6 @@ async def settings_post(
 
     avatar_path = None
     if avatar and avatar.filename:
-        # allow only images
         fn = avatar.filename.lower()
         if not re.search(r"\.(png|jpg|jpeg|webp)$", fn):
             me = _get_me(request)
@@ -89,7 +88,6 @@ async def settings_post(
         out = AVATAR_DIR / f"user-{uid}.{ext}"
 
         data = await avatar.read()
-        # keep it small-ish for demo
         if len(data) > 2_500_000:
             me = _get_me(request)
             return templates.TemplateResponse(
