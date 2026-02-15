@@ -1,5 +1,26 @@
-{% extends "layout.html" %}
-{% block content %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Peak English — Demo</title>
+  <link rel="stylesheet" href="/static/app.css?v=1"/>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">Peak English</a>
+      <nav class="nav">
+        
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="wrap">
+      
 <section class="hero">
   <div class="hero-card">
     <div class="hero-badge">Demo • Static build (Cloudflare Pages)</div>
@@ -33,10 +54,20 @@
     e.preventDefault();
     const fd = new FormData(form);
     const u = String(fd.get("username") || "").trim().toLowerCase();
-    // demo routing
-    if (u === "teacher") location.href = "/teacher/dashboard/";
-    else location.href = "/student/dashboard/";
+    if (u === "teacher") {
+      Peak.login("teacher","teacher");
+      location.href = "/teacher/dashboard/";
+    } else {
+      Peak.login("student", u || "student");
+      location.href = "/student/dashboard/";
+    }
   });
 })();
 </script>
-{% endblock %}
+
+    </div>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
