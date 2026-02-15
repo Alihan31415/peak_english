@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="section section-wide">
+  <div class="section-head head-row">
+    <div>
+      <h1 class="h1">Speaking</h1>
+      <p class="sub">Demo UI: mic, timer, transcript, feedback. (No backend audio yet)</p>
+    </div>
+    <span class="badge">Demo</span>
+  </div>
+
+  <div class="grid">
+    <div class="col-8">
+      <div class="panel">
+        <div class="label">Prompt</div>
+        <div class="prompt">Describe your last weekend in 45–60 seconds.</div>
+        <div class="muted small">Use: past simple + 1–2 linking words (first, because, however).</div>
+
+        <div class="divider"></div>
+
+        <div class="row" style="justify-content:space-between;">
+          <button class="btn primary mic" id="micBtn">🎙 Hold to talk</button>
+          <div class="row" style="gap:10px;">
+            <span class="pill" id="timer">00:47</span>
+            <span class="pill">EN</span>
+            <span class="pill">Speed: normal</span>
+          </div>
+        </div>
+
+        <div class="wave" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="label">Transcript (demo)</div>
+        <div class="bubble wide">
+          “Last weekend I visited my friends. We had dinner at home and watched a movie.
+          I was tired, but it was relaxing and I enjoyed it.”
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="label">Feedback (demo)</div>
+        <div class="mini-row">
+          <span class="pill">Pronunciation: Good</span>
+          <span class="pill">Grammar: Minor issues</span>
+          <span class="pill">Fluency: Improving</span>
+        </div>
+        <div class="muted small" style="margin-top:8px;">
+          Tip: add 1 detail + 1 reason. Example: “because it helped me rest after work”.
+        </div>
+      </div>
+    </div>
+
+    <div class="col-4">
+      <div class="panel">
+        <div class="label">Quick stats</div>
+        <div class="kpi-num">7</div>
+        <div class="muted small">day streak</div>
+        <div class="divider"></div>
+        <a class="btn primary full" href="/student/chat">Continue in Chat</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const btn = document.getElementById("micBtn");
+    const timer = document.getElementById("timer");
+    let down = false;
+    let t = 47;
+
+    function fmt(n){ return String(n).padStart(2,'0'); }
+    function render(){
+      const m = Math.floor(t/60), s = t%60;
+      timer.textContent = `${fmt(m)}:${fmt(s)}`;
+    }
+
+    function tick(){
+      if(!down) return;
+      t = Math.max(0, t-1);
+      render();
+      if(t>0) setTimeout(tick, 1000);
+    }
+
+    btn.addEventListener("pointerdown", ()=>{
+      down = true;
+      btn.classList.add("is-down");
+      tick();
+    });
+
+    function up(){
+      down = false;
+      btn.classList.remove("is-down");
+    }
+    btn.addEventListener("pointerup", up);
+    btn.addEventListener("pointercancel", up);
+    btn.addEventListener("pointerleave", up);
+
+    render();
+  })();
+  </script>
+</section>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="section">
+  <div class="section-head">
+    <div class="row" style="justify-content:space-between; align-items:flex-end;">
+      <div>
+        <h1 class="h1">Student</h1>
+        <p class="sub">Quick access. Wide. Touch-friendly.</p>
+      </div>
+      <div class="row" style="gap:10px; align-items:center;">
+        {% if me and me["avatar_path"] %}
+          <img class="avatar" src="{{ me['avatar_path'] }}" alt="avatar">
+        {% else %}
+          <div class="avatar avatar-fallback">A</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="tiles">
+    <a class="tile" href="/student/speaking">
+      <div class="tile-title">Speaking</div>
+      <div class="tile-sub">Mic demo, transcript, feedback</div>
+      <div class="mini-row">
+        <span class="pill">~60 sec</span>
+        <span class="pill">B/W UI</span>
+      </div>
+    </a>
+
+    <a class="tile" href="/student/chat">
+      <div class="tile-title">Chat</div>
+      <div class="tile-sub">Dialog trainer, corrections, prompts</div>
+      <div class="mini-row">
+        <span class="pill">fast</span>
+        <span class="pill">task-based</span>
+      </div>
+    </a>
+
+    <a class="tile" href="/student/settings">
+      <div class="tile-title">Settings</div>
+      <div class="tile-sub">Goal, level, avatar</div>
+      <div class="mini-row">
+        <span class="pill">profile</span>
+        <span class="pill">demo</span>
+      </div>
+    </a>
+
+    <div class="tile tile-static">
+      <div class="tile-title">Daily word</div>
+      <div class="tile-sub">Demo card for the pitch</div>
+      <div class="mini-card">
+        <div class="mini-top">resilient</div>
+        <div class="mini-sub">able to recover quickly from difficulties</div>
+        <div class="mini-ex">She stayed resilient despite the setbacks.</div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

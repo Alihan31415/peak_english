@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="section section-wide">
+  <div class="section-head">
+    <h1 class="h1">Chat</h1>
+    <p class="sub">Full-width chat (MVP UI). Replace fake reply with /api later.</p>
+  </div>
+
+  <div class="chat-shell">
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg ai">
+        <div class="bubble">Hi! Tell me what you did today — I will correct you.</div>
+      </div>
+    </div>
+
+    <form class="chat-bar" id="chatForm">
+      <input class="chat-input" id="chatInput" placeholder="Type here…" autocomplete="off" />
+      <button class="btn primary chat-send" type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+  (function(){
+    const box = document.getElementById("chatMessages");
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("chatInput");
+
+    function add(role, text){
+      const row = document.createElement("div");
+      row.className = "msg " + role;
+      const b = document.createElement("div");
+      b.className = "bubble";
+      b.textContent = text;
+      row.appendChild(b);
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    form.addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const t = (input.value || "").trim();
+      if(!t) return;
+      add("me", t);
+      input.value = "";
+      setTimeout(()=> add("ai", "Nice! Try: “I did … today.”"), 250);
+    });
+  })();
+  </script>
+</section>
+{% endblock %}
