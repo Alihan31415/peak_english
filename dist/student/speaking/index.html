@@ -13,14 +13,11 @@
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
       <nav class="nav">
-        
-<a class="nav-link" href="/student/dashboard/">Dashboard</a>
-<a class="nav-link" href="/student/speaking/">Speaking</a>
-<a class="nav-link" href="/student/chat/">Chat</a>
-<a class="nav-link" href="/student/settings/">Settings</a>
-<a class="nav-pill" href="#" onclick="Peak.logout(); return false;">Logout</a>
-<span id="topAvatar"></span>
-
+        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
+        <a class="nav-link" href="/student/speaking/">Speaking</a>
+        <a class="nav-link" href="/student/chat/">Chat</a>
+        <a class="nav-link" href="/student/settings/">Settings</a>
+        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
       </nav>
     </div>
   </header>
@@ -95,15 +92,12 @@
 
   <script>
   (function(){
-    Peak.requireRole("student");
-    Peak.hydrateTopbar();
-
     const btn = document.getElementById("micBtn");
     const timer = document.getElementById("timer");
     let down = false;
     let t = 47;
 
-    function fmt(n){ return String(n).padStart(2,"0"); }
+    function fmt(n){ return String(n).padStart(2,0); }
     function render(){
       const m = Math.floor(t/60), s = t%60;
       timer.textContent = `${fmt(m)}:${fmt(s)}`;
@@ -127,6 +121,7 @@
     btn.addEventListener("pointerup", up);
     btn.addEventListener("pointercancel", up);
     btn.addEventListener("pointerleave", up);
+
     render();
   })();
   </script>
@@ -134,7 +129,5 @@
 
     </div>
   </main>
-
-  <script src="/static/app.js"></script>
 </body>
 </html>

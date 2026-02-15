@@ -1,79 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-rm -rf dist
-mkdir -p dist/static dist/student/{dashboard,chat,speaking,settings} dist/teacher/{dashboard,students,students-new}
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIST="$ROOT/dist"
 
-# copy css
-mkdir -p dist/static
-cp -f static/app.css dist/static/app.css
+rm -rf "$DIST"
+mkdir -p "$DIST/static"
 
-# redirects: ONLY normalize common paths, no catch-all (keeps CSS safe)
-cat > dist/_redirects <<'TXT'
-/student /student/ 301
-/teacher /teacher/ 301
-/login / 301
+# copy CSS to dist
+if [ -f "$ROOT/static/app.css" ]; then
+  cp "$ROOT/static/app.css" "$DIST/static/app.css"
+else
+  echo "ERROR: static/app.css not found"
+  exit 1
+fi
+
+# Cloudflare Pages redirect rules (optional but handy)
+cat > "$DIST/_redirects" <<'TXT'
+/student/dashboard  /student/dashboard/  301
+/student/chat       /student/chat/       301
+/student/speaking   /student/speaking/   301
+/student/settings   /student/settings/   301
+/teacher/dashboard  /teacher/dashboard/  301
+/teacher/students   /teacher/students/   301
+/teacher/students/new /teacher/students/new/ 301
 TXT
 
-# tiny shared JS for "auth" + avatar/name
-cat > dist/static/app.js <<'JS'
-(function(){
-  const store = {
-    get(k, d){ try { const v = localStorage.getItem(k); return v==null? d : JSON.parse(v); } catch { return d; } },
-    set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
-  };
-
-  function el(id){ return document.getElementById(id); }
-
-  window.Peak = {
-    store,
-    login(role, username){
-      store.set("session", { role, username, ts: Date.now() });
-    },
-    logout(){
-      localStorage.removeItem("session");
-      location.href = "/";
-    },
-    requireRole(role){
-      const s = store.get("session", null);
-      if(!s || s.role !== role){
-        location.href = "/";
-      }
-    },
-    getProfile(){
-      return store.get("profile", { displayName: "", avatarDataUrl: "" });
-    },
-    setProfile(p){
-      store.set("profile", p);
-    },
-    hydrateTopbar(){
-      const p = Peak.getProfile();
-      const avatar = el("topAvatar");
-      const name = el("topName");
-      if(avatar){
-        if(p.avatarDataUrl){
-          avatar.innerHTML = '<img class="avatar" src="'+p.avatarDataUrl+'" alt="avatar">';
-        } else {
-          const letter = (p.displayName || "A").trim().charAt(0).toUpperCase() || "A";
-          avatar.innerHTML = '<div class="avatar avatar-fallback">'+letter+'</div>';
-        }
-      }
-      if(name){
-        name.textContent = (p.displayName || "Student").trim() || "Student";
-      }
-    }
-  };
-})();
-JS
-
-# helper to write full html pages (no templating)
-page(){
-  local out="$1"; shift
-  local title="$1"; shift
-  local nav="$1"; shift
-  local body="$1"; shift
-
-  cat > "$out" <<HTML
+layout() {
+  local title="$1"
+  local body="$2"
+  cat <<HTML
 <!doctype html>
 <html lang="en">
 <head>
@@ -89,7 +45,11 @@ page(){
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
       <nav class="nav">
-        ${nav}
+        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
+        <a class="nav-link" href="/student/speaking/">Speaking</a>
+        <a class="nav-link" href="/student/chat/">Chat</a>
+        <a class="nav-link" href="/student/settings/">Settings</a>
+        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
       </nav>
     </div>
   </header>
@@ -99,40 +59,71 @@ page(){
       ${body}
     </div>
   </main>
-
-  <script src="/static/app.js"></script>
 </body>
 </html>
 HTML
 }
 
-# ---------- INDEX (login) ----------
-page "dist/index.html" "Peak English — Demo" "" '
-<section class="hero">
-  <div class="hero-card">
-    <div class="hero-badge">Demo • Static build (Cloudflare Pages)</div>
-    <h1 class="hero-title">Sign in</h1>
-    <p class="hero-sub">Static demo: no real server login. Redirects locally.</p>
+write_page() {
+  local out="$1"
+  local title="$2"
+  local body="$3"
+  mkdir -p "$(dirname "$out")"
+  layout "$title" "$body" > "$out"
+}
 
-    <form class="form" id="loginForm">
-      <label class="lbl">Username</label>
-      <input class="input" name="username" autocomplete="username" required>
+# ---------- LOGIN (/) ----------
+cat > "$DIST/index.html" <<'HTML'
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Peak English — Demo</title>
+  <link rel="stylesheet" href="/static/app.css?v=1"/>
+</head>
+<body>
+  <div class="bg-glow"></div>
 
-      <label class="lbl">Password</label>
-      <input class="input" type="password" name="password" autocomplete="current-password" required>
-
-      <button class="btn primary full" type="submit">Login</button>
-    </form>
-
-    <div class="hint">
-      Demo accounts:
-      <div class="chips">
-        <span class="chip">teacher / teacher123</span>
-        <span class="chip">student / student123</span>
-      </div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">Peak English</a>
+      <nav class="nav">
+        <a class="nav-link" href="/student/dashboard/">Student</a>
+        <a class="nav-link" href="/teacher/dashboard/">Teacher</a>
+      </nav>
     </div>
-  </div>
-</section>
+  </header>
+
+  <main class="page">
+    <div class="wrap">
+      <section class="hero">
+        <div class="hero-card">
+          <div class="hero-badge">Demo • Static build (Cloudflare Pages)</div>
+          <h1 class="hero-title">Sign in</h1>
+          <p class="hero-sub">Static demo: no real server login. Redirects locally.</p>
+
+          <form class="form" id="loginForm">
+            <label class="lbl">Username</label>
+            <input class="input" name="username" autocomplete="username" required>
+
+            <label class="lbl">Password</label>
+            <input class="input" type="password" name="password" autocomplete="current-password" required>
+
+            <button class="btn primary full" type="submit">Login</button>
+          </form>
+
+          <div class="hint">
+            Demo accounts:
+            <div class="chips">
+              <span class="chip">teacher / teacher123</span>
+              <span class="chip">student / student123</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
 
 <script>
 (function(){
@@ -141,38 +132,17 @@ page "dist/index.html" "Peak English — Demo" "" '
     e.preventDefault();
     const fd = new FormData(form);
     const u = String(fd.get("username") || "").trim().toLowerCase();
-    if (u === "teacher") {
-      Peak.login("teacher","teacher");
-      location.href = "/teacher/dashboard/";
-    } else {
-      Peak.login("student", u || "student");
-      location.href = "/student/dashboard/";
-    }
+    if (u === "teacher") location.href = "/teacher/dashboard/";
+    else location.href = "/student/dashboard/";
   });
 })();
 </script>
-'
+</body>
+</html>
+HTML
 
-# ---------- STUDENT NAV ----------
-student_nav='
-<a class="nav-link" href="/student/dashboard/">Dashboard</a>
-<a class="nav-link" href="/student/speaking/">Speaking</a>
-<a class="nav-link" href="/student/chat/">Chat</a>
-<a class="nav-link" href="/student/settings/">Settings</a>
-<a class="nav-pill" href="#" onclick="Peak.logout(); return false;">Logout</a>
-<span id="topAvatar"></span>
-'
-
-# ---------- TEACHER NAV ----------
-teacher_nav='
-<a class="nav-link" href="/teacher/dashboard/">Dashboard</a>
-<a class="nav-link" href="/teacher/students/">Students</a>
-<a class="nav-link" href="/teacher/students-new/">Create</a>
-<a class="nav-pill" href="#" onclick="Peak.logout(); return false;">Logout</a>
-'
-
-# ---------- STUDENT: DASHBOARD ----------
-page "dist/student/dashboard/index.html" "Peak English — Student" "$student_nav" '
+# ---------- STUDENT DASHBOARD ----------
+write_page "$DIST/student/dashboard/index.html" "Peak English — Student" '
 <section class="section">
   <div class="section-head">
     <div class="row" style="justify-content:space-between; align-items:flex-end;">
@@ -181,7 +151,7 @@ page "dist/student/dashboard/index.html" "Peak English — Student" "$student_na
         <p class="sub">Quick access. Wide. Touch-friendly.</p>
       </div>
       <div class="row" style="gap:10px; align-items:center;">
-        <div class="pill" id="topName">Student</div>
+        <div class="avatar avatar-fallback">A</div>
       </div>
     </div>
   </div>
@@ -207,7 +177,7 @@ page "dist/student/dashboard/index.html" "Peak English — Student" "$student_na
 
     <a class="tile" href="/student/settings/">
       <div class="tile-title">Settings</div>
-      <div class="tile-sub">Goal, level, avatar</div>
+      <div class="tile-sub">Goal, level, avatar (demo)</div>
       <div class="mini-row">
         <span class="pill">profile</span>
         <span class="pill">demo</span>
@@ -225,69 +195,10 @@ page "dist/student/dashboard/index.html" "Peak English — Student" "$student_na
     </div>
   </div>
 </section>
-
-<script>
-(function(){
-  Peak.requireRole("student");
-  Peak.hydrateTopbar();
-})();
-</script>
 '
 
-# ---------- STUDENT: CHAT ----------
-page "dist/student/chat/index.html" "Peak English — Chat" "$student_nav" '
-<section class="section section-wide">
-  <div class="section-head">
-    <h1 class="h1">Chat</h1>
-    <p class="sub">Full-width chat (MVP UI). Fake reply. No backend.</p>
-  </div>
-
-  <div class="chat-shell">
-    <div class="chat-messages" id="chatMessages">
-      <div class="msg ai"><div class="bubble">Hi! Tell me what you did today — I will correct you.</div></div>
-    </div>
-
-    <form class="chat-bar" id="chatForm">
-      <input class="chat-input" id="chatInput" placeholder="Type here…" autocomplete="off" />
-      <button class="btn primary chat-send" type="submit">Send</button>
-    </form>
-  </div>
-
-  <script>
-  (function(){
-    Peak.requireRole("student");
-    Peak.hydrateTopbar();
-
-    const box = document.getElementById("chatMessages");
-    const form = document.getElementById("chatForm");
-    const input = document.getElementById("chatInput");
-
-    function add(role, text){
-      const row = document.createElement("div");
-      row.className = "msg " + role;
-      const b = document.createElement("div");
-      b.className = "bubble";
-      b.textContent = text;
-      row.appendChild(b);
-      box.appendChild(row);
-      box.scrollTop = box.scrollHeight;
-    }
-
-    form.addEventListener("submit", (e)=>{
-      e.preventDefault();
-      const t = (input.value || "").trim();
-      if(!t) return;
-      add("me", t);
-      input.value = "";
-      setTimeout(()=> add("ai", "Nice! Try: “I did … today.”"), 250);
-    });
-  })();
-  </script>
-</section>
-'
-
-# ---------- STUDENT: SPEAKING ----------
-page "dist/student/speaking/index.html" "Peak English — Speaking" "$student_nav" '
+# ---------- STUDENT SPEAKING ----------
+write_page "$DIST/student/speaking/index.html" "Peak English — Speaking" '
 <section class="section section-wide">
   <div class="section-head head-row">
     <div>
@@ -355,15 +266,12 @@ page "dist/student/speaking/index.html" "Peak English — Speaking" "$student_na
 
   <script>
   (function(){
-    Peak.requireRole("student");
-    Peak.hydrateTopbar();
-
     const btn = document.getElementById("micBtn");
     const timer = document.getElementById("timer");
     let down = false;
     let t = 47;
 
-    function fmt(n){ return String(n).padStart(2,"0"); }
+    function fmt(n){ return String(n).padStart(2,'0'); }
     function render(){
       const m = Math.floor(t/60), s = t%60;
       timer.textContent = `${fmt(m)}:${fmt(s)}`;
@@ -387,35 +295,88 @@ page "dist/student/speaking/index.html" "Peak English — Speaking" "$student_na
     btn.addEventListener("pointerup", up);
     btn.addEventListener("pointercancel", up);
     btn.addEventListener("pointerleave", up);
+
     render();
   })();
   </script>
 </section>
 '
 
-# ---------- STUDENT: SETTINGS (localStorage) ----------
-page "dist/student/settings/index.html" "Peak English — Settings" "$student_nav" '
+# ---------- STUDENT CHAT ----------
+write_page "$DIST/student/chat/index.html" "Peak English — Chat" '
+<section class="section section-wide">
+  <div class="section-head">
+    <h1 class="h1">Chat</h1>
+    <p class="sub">Full-width chat (MVP UI). Fake reply now, backend later.</p>
+  </div>
+
+  <div class="chat-shell">
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg ai">
+        <div class="bubble">Hi! Tell me what you did today — I will correct you.</div>
+      </div>
+    </div>
+
+    <form class="chat-bar" id="chatForm">
+      <input class="chat-input" id="chatInput" placeholder="Type here…" autocomplete="off" />
+      <button class="btn primary chat-send" type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+  (function(){
+    const box = document.getElementById("chatMessages");
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("chatInput");
+
+    function add(role, text){
+      const row = document.createElement("div");
+      row.className = "msg " + role;
+      const b = document.createElement("div");
+      b.className = "bubble";
+      b.textContent = text;
+      row.appendChild(b);
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    form.addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const t = (input.value || "").trim();
+      if(!t) return;
+      add("me", t);
+      input.value = "";
+      setTimeout(()=> add("ai", "Nice! Try: “I did … today.”"), 250);
+    });
+  })();
+  </script>
+</section>
+'
+
+# ---------- STUDENT SETTINGS (static demo) ----------
+write_page "$DIST/student/settings/index.html" "Peak English — Settings" '
 <section class="section section-wide">
   <div class="section-head head-row">
     <div>
       <h1 class="h1">Settings</h1>
-      <p class="sub">Avatar + display name (stored locally). Demo-friendly.</p>
+      <p class="sub">Static demo (no server). Avatar upload is UI-only.</p>
     </div>
-    <span class="badge" id="savedBadge" style="display:none;">Saved</span>
+    <span class="badge">Demo</span>
   </div>
 
   <div class="grid">
     <div class="col-5">
       <div class="panel">
         <div class="label">Avatar</div>
-        <div class="muted small">PNG/JPG/WEBP. Stored as DataURL locally.</div>
+        <div class="muted small">Demo preview only.</div>
         <div class="divider"></div>
 
         <div class="row" style="justify-content:flex-start; gap:12px;">
-          <div id="bigAvatar"></div>
+          <div class="avatar avatar-lg avatar-fallback" id="avatarFallback">A</div>
+          <img class="avatar avatar-lg" id="avatarImg" alt="avatar" style="display:none;">
           <div>
-            <div class="label" id="dispName">Student</div>
-            <div class="muted small" id="userTag">@student</div>
+            <div class="label" id="displayNameLabel">Student</div>
+            <div class="muted small">@student</div>
           </div>
         </div>
       </div>
@@ -425,7 +386,7 @@ page "dist/student/settings/index.html" "Peak English — Settings" "$student_na
       <div class="panel">
         <form class="form" id="settingsForm">
           <label class="lbl">Display name</label>
-          <input class="input" name="display_name" id="displayNameInput" placeholder="Student">
+          <input class="input" name="display_name" placeholder="Student">
 
           <label class="lbl">Goal</label>
           <select class="input" name="goal">
@@ -435,10 +396,14 @@ page "dist/student/settings/index.html" "Peak English — Settings" "$student_na
           </select>
 
           <label class="lbl">Upload avatar</label>
-          <input class="input" type="file" id="avatarInput" accept="image/png,image/jpeg,image/webp">
+          <input class="input" type="file" id="avatarFile" accept="image/png,image/jpeg,image/webp">
 
-          <button class="btn primary full" type="submit">Save</button>
+          <button class="btn primary full" type="submit">Save (demo)</button>
         </form>
+
+        <div class="hint" id="savedHint" style="display:none;">
+          <div class="chips"><span class="chip">Saved (demo)</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -446,74 +411,45 @@ page "dist/student/settings/index.html" "Peak English — Settings" "$student_na
 
 <script>
 (function(){
-  Peak.requireRole("student");
-
-  const s = Peak.store.get("session", {username:"student"});
-  const profile = Peak.getProfile();
-
-  const badge = document.getElementById("savedBadge");
-  const dispName = document.getElementById("dispName");
-  const userTag = document.getElementById("userTag");
-  const bigAvatar = document.getElementById("bigAvatar");
-  const nameInput = document.getElementById("displayNameInput");
-  const avatarInput = document.getElementById("avatarInput");
   const form = document.getElementById("settingsForm");
+  const file = document.getElementById("avatarFile");
+  const img = document.getElementById("avatarImg");
+  const fb = document.getElementById("avatarFallback");
+  const nameLbl = document.getElementById("displayNameLabel");
+  const saved = document.getElementById("savedHint");
 
-  function render(){
-    const p = Peak.getProfile();
-    const nm = (p.displayName || "Student").trim() || "Student";
-    dispName.textContent = nm;
-    userTag.textContent = "@" + (s.username || "student");
-    nameInput.value = p.displayName || "";
-    if(p.avatarDataUrl){
-      bigAvatar.innerHTML = '<img class="avatar avatar-lg" src="'+p.avatarDataUrl+'" alt="avatar">';
-    } else {
-      const letter = nm.charAt(0).toUpperCase() || "A";
-      bigAvatar.innerHTML = '<div class="avatar avatar-lg avatar-fallback">'+letter+'</div>';
-    }
-    Peak.hydrateTopbar();
-  }
-
-  form.addEventListener("submit", async (e)=>{
-    e.preventDefault();
-    const p = Peak.getProfile();
-    p.displayName = (nameInput.value || "").trim();
-
-    const file = avatarInput.files && avatarInput.files[0];
-    if(file){
-      const ok = /image\/(png|jpeg|webp)/.test(file.type);
-      if(!ok){ alert("Avatar must be PNG/JPG/WEBP"); return; }
-      const dataUrl = await new Promise((res, rej)=>{
-        const r = new FileReader();
-        r.onload = ()=> res(String(r.result||""));
-        r.onerror = rej;
-        r.readAsDataURL(file);
-      });
-      p.avatarDataUrl = dataUrl;
-    }
-
-    Peak.setProfile(p);
-    badge.style.display = "inline-flex";
-    setTimeout(()=> badge.style.display="none", 1200);
-    render();
+  file.addEventListener("change", ()=>{
+    const f = file.files && file.files[0];
+    if(!f) return;
+    const url = URL.createObjectURL(f);
+    img.src = url;
+    img.style.display = "block";
+    fb.style.display = "none";
   });
 
-  render();
+  form.addEventListener("submit", (e)=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const dn = String(fd.get("display_name") || "").trim();
+    nameLbl.textContent = dn || "Student";
+    saved.style.display = "block";
+    setTimeout(()=> saved.style.display = "none", 1400);
+  });
 })();
 </script>
 '
 
-# ---------- TEACHER: DASHBOARD ----------
-page "dist/teacher/dashboard/index.html" "Peak English — Teacher" "$teacher_nav" '
+# ---------- TEACHER DEMO PAGES ----------
+write_page "$DIST/teacher/dashboard/index.html" "Peak English — Teacher" '
 <section class="section">
   <div class="section-head">
     <h1 class="h1">Teacher</h1>
-    <p class="sub">Static demo dashboard. No DB.</p>
+    <p class="sub">Static demo dashboard.</p>
   </div>
 
   <div class="kpis">
     <div class="kpi">
-      <div class="kpi-num">18</div>
+      <div class="kpi-num">12</div>
       <div class="kpi-label">Students (demo)</div>
     </div>
 
@@ -522,34 +458,28 @@ page "dist/teacher/dashboard/index.html" "Peak English — Teacher" "$teacher_na
       <div class="kpi-label">Open students</div>
     </a>
 
-    <a class="kpi kpi-link" href="/teacher/students-new/">
+    <a class="kpi kpi-link" href="/teacher/students/new/">
       <div class="kpi-num">+</div>
       <div class="kpi-label">Create student</div>
     </a>
   </div>
 </section>
-
-<script>
-(function(){ Peak.requireRole("teacher"); })();
-</script>
 '
 
-# ---------- TEACHER: STUDENTS (static list) ----------
-page "dist/teacher/students/index.html" "Peak English — Students" "$teacher_nav" '
+write_page "$DIST/teacher/students/index.html" "Peak English — Students" '
 <section class="section section-wide">
   <div class="section-head head-row">
     <div>
       <h1 class="h1">Students</h1>
       <p class="sub">Static demo list.</p>
     </div>
-    <a class="btn primary" href="/teacher/students-new/">+ New student</a>
+    <a class="btn primary" href="/teacher/students/new/">+ New student</a>
   </div>
 
   <div class="table">
     <div class="trow thead">
       <div>ID</div><div>Username</div><div>Name</div><div>Created</div>
     </div>
-
     <div class="trow">
       <div class="mono">1</div><div class="mono">student</div><div>Student</div><div class="mono muted">demo</div>
     </div>
@@ -558,42 +488,47 @@ page "dist/teacher/students/index.html" "Peak English — Students" "$teacher_na
     </div>
   </div>
 </section>
-
-<script>
-(function(){ Peak.requireRole("teacher"); })();
-</script>
 '
 
-# ---------- TEACHER: CREATE (static) ----------
-page "dist/teacher/students-new/index.html" "Peak English — Create Student" "$teacher_nav" '
+write_page "$DIST/teacher/students/new/index.html" "Peak English — Create Student" '
 <section class="section">
   <div class="section-head">
     <h1 class="h1">Create student</h1>
-    <p class="sub">Static demo page (no DB). For pitch only.</p>
+    <p class="sub">Static demo form (no backend).</p>
   </div>
 
   <div class="panel">
-    <div class="alert">
-      Cloudflare Pages is static. Real creation requires a backend (Workers/Pages Functions).
-      For now this is UI-only.
-    </div>
-
-    <div class="form">
+    <form class="form" id="newStudentForm">
       <label class="lbl">Username</label>
-      <input class="input" placeholder="e.g., john" disabled>
+      <input class="input" name="username" placeholder="e.g., john" required>
 
       <label class="lbl">Password</label>
-      <input class="input" placeholder="e.g., john123" disabled>
+      <input class="input" name="password" placeholder="e.g., john123" required>
 
-      <button class="btn primary full" disabled>Create (demo)</button>
+      <label class="lbl">Display name (optional)</label>
+      <input class="input" name="display_name" placeholder="John">
+
+      <button class="btn primary full" type="submit">Create (demo)</button>
       <a class="btn full" href="/teacher/students/">Back</a>
+    </form>
+
+    <div class="hint" id="createdHint" style="display:none;">
+      <div class="chips"><span class="chip">Created (demo)</span></div>
     </div>
   </div>
 </section>
 
 <script>
-(function(){ Peak.requireRole("teacher"); })();
+(function(){
+  const f = document.getElementById("newStudentForm");
+  const h = document.getElementById("createdHint");
+  f.addEventListener("submit", (e)=>{
+    e.preventDefault();
+    h.style.display="block";
+    setTimeout(()=> h.style.display="none", 1400);
+  });
+})();
 </script>
 '
 
-echo "✅ dist built (static, no Jinja)."
+echo "✅ dist built (static, no Jinja)"

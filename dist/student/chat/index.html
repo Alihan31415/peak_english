@@ -13,14 +13,11 @@
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
       <nav class="nav">
-        
-<a class="nav-link" href="/student/dashboard/">Dashboard</a>
-<a class="nav-link" href="/student/speaking/">Speaking</a>
-<a class="nav-link" href="/student/chat/">Chat</a>
-<a class="nav-link" href="/student/settings/">Settings</a>
-<a class="nav-pill" href="#" onclick="Peak.logout(); return false;">Logout</a>
-<span id="topAvatar"></span>
-
+        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
+        <a class="nav-link" href="/student/speaking/">Speaking</a>
+        <a class="nav-link" href="/student/chat/">Chat</a>
+        <a class="nav-link" href="/student/settings/">Settings</a>
+        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
       </nav>
     </div>
   </header>
@@ -31,12 +28,14 @@
 <section class="section section-wide">
   <div class="section-head">
     <h1 class="h1">Chat</h1>
-    <p class="sub">Full-width chat (MVP UI). Fake reply. No backend.</p>
+    <p class="sub">Full-width chat (MVP UI). Fake reply now, backend later.</p>
   </div>
 
   <div class="chat-shell">
     <div class="chat-messages" id="chatMessages">
-      <div class="msg ai"><div class="bubble">Hi! Tell me what you did today — I will correct you.</div></div>
+      <div class="msg ai">
+        <div class="bubble">Hi! Tell me what you did today — I will correct you.</div>
+      </div>
     </div>
 
     <form class="chat-bar" id="chatForm">
@@ -47,9 +46,6 @@
 
   <script>
   (function(){
-    Peak.requireRole("student");
-    Peak.hydrateTopbar();
-
     const box = document.getElementById("chatMessages");
     const form = document.getElementById("chatForm");
     const input = document.getElementById("chatInput");
@@ -79,7 +75,5 @@
 
     </div>
   </main>
-
-  <script src="/static/app.js"></script>
 </body>
 </html>

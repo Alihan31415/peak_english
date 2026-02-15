@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Peak English — Settings</title>
+  <link rel="stylesheet" href="/static/app.css?v=1"/>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">Peak English</a>
+      <nav class="nav">
+        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
+        <a class="nav-link" href="/student/speaking/">Speaking</a>
+        <a class="nav-link" href="/student/chat/">Chat</a>
+        <a class="nav-link" href="/student/settings/">Settings</a>
+        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="wrap">
+      
+<section class="section section-wide">
+  <div class="section-head head-row">
+    <div>
+      <h1 class="h1">Settings</h1>
+      <p class="sub">Static demo (no server). Avatar upload is UI-only.</p>
+    </div>
+    <span class="badge">Demo</span>
+  </div>
+
+  <div class="grid">
+    <div class="col-5">
+      <div class="panel">
+        <div class="label">Avatar</div>
+        <div class="muted small">Demo preview only.</div>
+        <div class="divider"></div>
+
+        <div class="row" style="justify-content:flex-start; gap:12px;">
+          <div class="avatar avatar-lg avatar-fallback" id="avatarFallback">A</div>
+          <img class="avatar avatar-lg" id="avatarImg" alt="avatar" style="display:none;">
+          <div>
+            <div class="label" id="displayNameLabel">Student</div>
+            <div class="muted small">@student</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-7">
+      <div class="panel">
+        <form class="form" id="settingsForm">
+          <label class="lbl">Display name</label>
+          <input class="input" name="display_name" placeholder="Student">
+
+          <label class="lbl">Goal</label>
+          <select class="input" name="goal">
+            <option>General English</option>
+            <option>IELTS</option>
+            <option>Business</option>
+          </select>
+
+          <label class="lbl">Upload avatar</label>
+          <input class="input" type="file" id="avatarFile" accept="image/png,image/jpeg,image/webp">
+
+          <button class="btn primary full" type="submit">Save (demo)</button>
+        </form>
+
+        <div class="hint" id="savedHint" style="display:none;">
+          <div class="chips"><span class="chip">Saved (demo)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const form = document.getElementById("settingsForm");
+  const file = document.getElementById("avatarFile");
+  const img = document.getElementById("avatarImg");
+  const fb = document.getElementById("avatarFallback");
+  const nameLbl = document.getElementById("displayNameLabel");
+  const saved = document.getElementById("savedHint");
+
+  file.addEventListener("change", ()=>{
+    const f = file.files && file.files[0];
+    if(!f) return;
+    const url = URL.createObjectURL(f);
+    img.src = url;
+    img.style.display = "block";
+    fb.style.display = "none";
+  });
+
+  form.addEventListener("submit", (e)=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const dn = String(fd.get("display_name") || "").trim();
+    nameLbl.textContent = dn || "Student";
+    saved.style.display = "block";
+    setTimeout(()=> saved.style.display = "none", 1400);
+  });
+})();
+</script>
+
+    </div>
+  </main>
+</body>
+</html>

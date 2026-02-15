@@ -1,3 +1,7 @@
-/student /student/ 301
-/teacher /teacher/ 301
-/login / 301
+/student/dashboard  /student/dashboard/  301
+/student/chat       /student/chat/       301
+/student/speaking   /student/speaking/   301
+/student/settings   /student/settings/   301
+/teacher/dashboard  /teacher/dashboard/  301
+/teacher/students   /teacher/students/   301
+/teacher/students/new /teacher/students/new/ 301
