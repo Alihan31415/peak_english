@@ -12,13 +12,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
-      <nav class="nav">
-        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
-        <a class="nav-link" href="/student/speaking/">Speaking</a>
-        <a class="nav-link" href="/student/chat/">Chat</a>
-        <a class="nav-link" href="/student/settings/">Settings</a>
-        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
-      </nav>
+      <nav class="nav" id="nav"></nav>
     </div>
   </header>
 
@@ -28,7 +22,7 @@
 <section class="section section-wide">
   <div class="section-head">
     <h1 class="h1">Chat</h1>
-    <p class="sub">Full-width chat (MVP UI). Fake reply now, backend later.</p>
+    <p class="sub">Full-width chat (MVP UI). Replace fake reply with /api later.</p>
   </div>
 
   <div class="chat-shell">
@@ -46,10 +40,10 @@
 
   <script>
   (function(){
+    if(localStorage.getItem("pe_role")!=="student") location.href="/";
     const box = document.getElementById("chatMessages");
     const form = document.getElementById("chatForm");
     const input = document.getElementById("chatInput");
-
     function add(role, text){
       const row = document.createElement("div");
       row.className = "msg " + role;
@@ -60,7 +54,6 @@
       box.appendChild(row);
       box.scrollTop = box.scrollHeight;
     }
-
     form.addEventListener("submit", (e)=>{
       e.preventDefault();
       const t = (input.value || "").trim();
@@ -75,5 +68,38 @@
 
     </div>
   </main>
+
+  <script>
+  (function(){
+    const role = localStorage.getItem("pe_role") || "";
+    const nav = document.getElementById("nav");
+    function a(h, t, cls){
+      const x=document.createElement("a");
+      x.href=h; x.textContent=t; x.className=cls||"nav-link";
+      return x;
+    }
+    if(role==="student"){
+      nav.appendChild(a("/student/dashboard/","Dashboard"));
+      nav.appendChild(a("/student/speaking/","Speaking"));
+      nav.appendChild(a("/student/chat/","Chat"));
+      nav.appendChild(a("/student/settings/","Settings"));
+    } else if(role==="teacher"){
+      nav.appendChild(a("/teacher/dashboard/","Dashboard"));
+      nav.appendChild(a("/teacher/students/","Students"));
+    }
+    if(role){
+      const lo = a("#","Logout","nav-pill");
+      lo.addEventListener("click", (e)=>{
+        e.preventDefault();
+        localStorage.removeItem("pe_role");
+        localStorage.removeItem("pe_name");
+        localStorage.removeItem("pe_avatar");
+        localStorage.removeItem("pe_disp");
+        location.href="/";
+      });
+      nav.appendChild(lo);
+    }
+  })();
+  </script>
 </body>
 </html>

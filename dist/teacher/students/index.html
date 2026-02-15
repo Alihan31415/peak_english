@@ -12,13 +12,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
-      <nav class="nav">
-        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
-        <a class="nav-link" href="/student/speaking/">Speaking</a>
-        <a class="nav-link" href="/student/chat/">Chat</a>
-        <a class="nav-link" href="/student/settings/">Settings</a>
-        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
-      </nav>
+      <nav class="nav" id="nav"></nav>
     </div>
   </header>
 
@@ -41,13 +35,49 @@
     <div class="trow">
       <div class="mono">1</div><div class="mono">student</div><div>Student</div><div class="mono muted">demo</div>
     </div>
-    <div class="trow">
-      <div class="mono">2</div><div class="mono">john</div><div>John</div><div class="mono muted">demo</div>
-    </div>
   </div>
 </section>
 
+<script>
+(function(){
+  if(localStorage.getItem("pe_role")!=="teacher") location.href="/";
+})();
+</script>
+
     </div>
   </main>
+
+  <script>
+  (function(){
+    const role = localStorage.getItem("pe_role") || "";
+    const nav = document.getElementById("nav");
+    function a(h, t, cls){
+      const x=document.createElement("a");
+      x.href=h; x.textContent=t; x.className=cls||"nav-link";
+      return x;
+    }
+    if(role==="student"){
+      nav.appendChild(a("/student/dashboard/","Dashboard"));
+      nav.appendChild(a("/student/speaking/","Speaking"));
+      nav.appendChild(a("/student/chat/","Chat"));
+      nav.appendChild(a("/student/settings/","Settings"));
+    } else if(role==="teacher"){
+      nav.appendChild(a("/teacher/dashboard/","Dashboard"));
+      nav.appendChild(a("/teacher/students/","Students"));
+    }
+    if(role){
+      const lo = a("#","Logout","nav-pill");
+      lo.addEventListener("click", (e)=>{
+        e.preventDefault();
+        localStorage.removeItem("pe_role");
+        localStorage.removeItem("pe_name");
+        localStorage.removeItem("pe_avatar");
+        localStorage.removeItem("pe_disp");
+        location.href="/";
+      });
+      nav.appendChild(lo);
+    }
+  })();
+  </script>
 </body>
 </html>

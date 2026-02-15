@@ -12,13 +12,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
-      <nav class="nav">
-        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
-        <a class="nav-link" href="/student/speaking/">Speaking</a>
-        <a class="nav-link" href="/student/chat/">Chat</a>
-        <a class="nav-link" href="/student/settings/">Settings</a>
-        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
-      </nav>
+      <nav class="nav" id="nav"></nav>
     </div>
   </header>
 
@@ -29,24 +23,24 @@
   <div class="section-head head-row">
     <div>
       <h1 class="h1">Settings</h1>
-      <p class="sub">Static demo (no server). Avatar upload is UI-only.</p>
+      <p class="sub">Static demo: name + avatar stored in localStorage.</p>
     </div>
-    <span class="badge">Demo</span>
+    <span class="badge" id="savedBadge" style="display:none;">Saved</span>
   </div>
 
   <div class="grid">
     <div class="col-5">
       <div class="panel">
         <div class="label">Avatar</div>
-        <div class="muted small">Demo preview only.</div>
+        <div class="muted small">Stored locally (demo).</div>
         <div class="divider"></div>
 
         <div class="row" style="justify-content:flex-start; gap:12px;">
+          <img class="avatar avatar-lg" id="avatarPreview" style="display:none" alt="avatar">
           <div class="avatar avatar-lg avatar-fallback" id="avatarFallback">A</div>
-          <img class="avatar avatar-lg" id="avatarImg" alt="avatar" style="display:none;">
           <div>
-            <div class="label" id="displayNameLabel">Student</div>
-            <div class="muted small">@student</div>
+            <div class="label" id="dispName">Student</div>
+            <div class="muted small" id="uname">@student</div>
           </div>
         </div>
       </div>
@@ -65,50 +59,95 @@
             <option>Business</option>
           </select>
 
-          <label class="lbl">Upload avatar</label>
-          <input class="input" type="file" id="avatarFile" accept="image/png,image/jpeg,image/webp">
+          <label class="lbl">Avatar (demo)</label>
+          <input class="input" type="file" name="avatar" accept="image/png,image/jpeg,image/webp">
 
-          <button class="btn primary full" type="submit">Save (demo)</button>
+          <button class="btn primary full" type="submit">Save</button>
         </form>
-
-        <div class="hint" id="savedHint" style="display:none;">
-          <div class="chips"><span class="chip">Saved (demo)</span></div>
-        </div>
       </div>
     </div>
   </div>
 </section>
 
 <script>
-(function(){
+(async function(){
+  if(localStorage.getItem("pe_role")!=="student") location.href="/";
+
+  const saved = document.getElementById("savedBadge");
   const form = document.getElementById("settingsForm");
-  const file = document.getElementById("avatarFile");
-  const img = document.getElementById("avatarImg");
-  const fb = document.getElementById("avatarFallback");
-  const nameLbl = document.getElementById("displayNameLabel");
-  const saved = document.getElementById("savedHint");
+  const dn = document.getElementById("dispName");
+  const un = document.getElementById("uname");
+  const avp = document.getElementById("avatarPreview");
+  const avf = document.getElementById("avatarFallback");
 
-  file.addEventListener("change", ()=>{
-    const f = file.files && file.files[0];
-    if(!f) return;
-    const url = URL.createObjectURL(f);
-    img.src = url;
-    img.style.display = "block";
-    fb.style.display = "none";
-  });
+  function render(){
+    const name = localStorage.getItem("pe_name") || "student";
+    const disp = localStorage.getItem("pe_disp") || "Student";
+    const av = localStorage.getItem("pe_avatar") || "";
+    dn.textContent = disp;
+    un.textContent = "@" + name;
+    if(av){
+      avp.src = av; avp.style.display="block"; avf.style.display="none";
+    } else {
+      avp.style.display="none"; avf.style.display="flex";
+    }
+  }
+  render();
 
-  form.addEventListener("submit", (e)=>{
+  form.addEventListener("submit", async (e)=>{
     e.preventDefault();
+    saved.style.display="none";
     const fd = new FormData(form);
-    const dn = String(fd.get("display_name") || "").trim();
-    nameLbl.textContent = dn || "Student";
-    saved.style.display = "block";
-    setTimeout(()=> saved.style.display = "none", 1400);
+    const disp = String(fd.get("display_name")||"").trim();
+    if(disp) localStorage.setItem("pe_disp", disp);
+
+    const file = fd.get("avatar");
+    if(file && file instanceof File && file.size){
+      const buf = await file.arrayBuffer();
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+      const mime = file.type || "image/png";
+      localStorage.setItem("pe_avatar", `data:${mime};base64,${b64}`);
+    }
+    saved.style.display="inline-flex";
+    render();
   });
 })();
 </script>
 
     </div>
   </main>
+
+  <script>
+  (function(){
+    const role = localStorage.getItem("pe_role") || "";
+    const nav = document.getElementById("nav");
+    function a(h, t, cls){
+      const x=document.createElement("a");
+      x.href=h; x.textContent=t; x.className=cls||"nav-link";
+      return x;
+    }
+    if(role==="student"){
+      nav.appendChild(a("/student/dashboard/","Dashboard"));
+      nav.appendChild(a("/student/speaking/","Speaking"));
+      nav.appendChild(a("/student/chat/","Chat"));
+      nav.appendChild(a("/student/settings/","Settings"));
+    } else if(role==="teacher"){
+      nav.appendChild(a("/teacher/dashboard/","Dashboard"));
+      nav.appendChild(a("/teacher/students/","Students"));
+    }
+    if(role){
+      const lo = a("#","Logout","nav-pill");
+      lo.addEventListener("click", (e)=>{
+        e.preventDefault();
+        localStorage.removeItem("pe_role");
+        localStorage.removeItem("pe_name");
+        localStorage.removeItem("pe_avatar");
+        localStorage.removeItem("pe_disp");
+        location.href="/";
+      });
+      nav.appendChild(lo);
+    }
+  })();
+  </script>
 </body>
 </html>

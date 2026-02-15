@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Peak English — Create Student</title>
+  <title>Peak English — New student</title>
   <link rel="stylesheet" href="/static/app.css?v=1"/>
 </head>
 <body>
@@ -12,13 +12,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
-      <nav class="nav">
-        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
-        <a class="nav-link" href="/student/speaking/">Speaking</a>
-        <a class="nav-link" href="/student/chat/">Chat</a>
-        <a class="nav-link" href="/student/settings/">Settings</a>
-        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
-      </nav>
+      <nav class="nav" id="nav"></nav>
     </div>
   </header>
 
@@ -28,43 +22,61 @@
 <section class="section">
   <div class="section-head">
     <h1 class="h1">Create student</h1>
-    <p class="sub">Static demo form (no backend).</p>
+    <p class="sub">Static demo (no real create).</p>
   </div>
 
   <div class="panel">
-    <form class="form" id="newStudentForm">
+    <form class="form" onsubmit="event.preventDefault(); alert(\"Demo only\");">
       <label class="lbl">Username</label>
-      <input class="input" name="username" placeholder="e.g., john" required>
-
+      <input class="input" placeholder="e.g., john" required>
       <label class="lbl">Password</label>
-      <input class="input" name="password" placeholder="e.g., john123" required>
-
-      <label class="lbl">Display name (optional)</label>
-      <input class="input" name="display_name" placeholder="John">
-
-      <button class="btn primary full" type="submit">Create (demo)</button>
+      <input class="input" placeholder="e.g., john123" required>
+      <button class="btn primary full" type="submit">Create</button>
       <a class="btn full" href="/teacher/students/">Back</a>
     </form>
-
-    <div class="hint" id="createdHint" style="display:none;">
-      <div class="chips"><span class="chip">Created (demo)</span></div>
-    </div>
   </div>
 </section>
 
 <script>
 (function(){
-  const f = document.getElementById("newStudentForm");
-  const h = document.getElementById("createdHint");
-  f.addEventListener("submit", (e)=>{
-    e.preventDefault();
-    h.style.display="block";
-    setTimeout(()=> h.style.display="none", 1400);
-  });
+  if(localStorage.getItem("pe_role")!=="teacher") location.href="/";
 })();
 </script>
 
     </div>
   </main>
+
+  <script>
+  (function(){
+    const role = localStorage.getItem("pe_role") || "";
+    const nav = document.getElementById("nav");
+    function a(h, t, cls){
+      const x=document.createElement("a");
+      x.href=h; x.textContent=t; x.className=cls||"nav-link";
+      return x;
+    }
+    if(role==="student"){
+      nav.appendChild(a("/student/dashboard/","Dashboard"));
+      nav.appendChild(a("/student/speaking/","Speaking"));
+      nav.appendChild(a("/student/chat/","Chat"));
+      nav.appendChild(a("/student/settings/","Settings"));
+    } else if(role==="teacher"){
+      nav.appendChild(a("/teacher/dashboard/","Dashboard"));
+      nav.appendChild(a("/teacher/students/","Students"));
+    }
+    if(role){
+      const lo = a("#","Logout","nav-pill");
+      lo.addEventListener("click", (e)=>{
+        e.preventDefault();
+        localStorage.removeItem("pe_role");
+        localStorage.removeItem("pe_name");
+        localStorage.removeItem("pe_avatar");
+        localStorage.removeItem("pe_disp");
+        location.href="/";
+      });
+      nav.appendChild(lo);
+    }
+  })();
+  </script>
 </body>
 </html>

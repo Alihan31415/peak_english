@@ -12,13 +12,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
-      <nav class="nav">
-        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
-        <a class="nav-link" href="/student/speaking/">Speaking</a>
-        <a class="nav-link" href="/student/chat/">Chat</a>
-        <a class="nav-link" href="/student/settings/">Settings</a>
-        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
-      </nav>
+      <nav class="nav" id="nav"></nav>
     </div>
   </header>
 
@@ -33,7 +27,8 @@
         <p class="sub">Quick access. Wide. Touch-friendly.</p>
       </div>
       <div class="row" style="gap:10px; align-items:center;">
-        <div class="avatar avatar-fallback">A</div>
+        <img class="avatar" id="avatarImg" alt="avatar" style="display:none">
+        <div class="avatar avatar-fallback" id="avatarFallback">A</div>
       </div>
     </div>
   </div>
@@ -59,7 +54,7 @@
 
     <a class="tile" href="/student/settings/">
       <div class="tile-title">Settings</div>
-      <div class="tile-sub">Goal, level, avatar (demo)</div>
+      <div class="tile-sub">Goal, level, avatar</div>
       <div class="mini-row">
         <span class="pill">profile</span>
         <span class="pill">demo</span>
@@ -78,7 +73,54 @@
   </div>
 </section>
 
+<script>
+(function(){
+  if(localStorage.getItem("pe_role")!=="student") location.href="/";
+  const av = localStorage.getItem("pe_avatar") || "";
+  const img = document.getElementById("avatarImg");
+  const fb = document.getElementById("avatarFallback");
+  if(av){
+    img.src = av;
+    img.style.display="block";
+    fb.style.display="none";
+  }
+})();
+</script>
+
     </div>
   </main>
+
+  <script>
+  (function(){
+    const role = localStorage.getItem("pe_role") || "";
+    const nav = document.getElementById("nav");
+    function a(h, t, cls){
+      const x=document.createElement("a");
+      x.href=h; x.textContent=t; x.className=cls||"nav-link";
+      return x;
+    }
+    if(role==="student"){
+      nav.appendChild(a("/student/dashboard/","Dashboard"));
+      nav.appendChild(a("/student/speaking/","Speaking"));
+      nav.appendChild(a("/student/chat/","Chat"));
+      nav.appendChild(a("/student/settings/","Settings"));
+    } else if(role==="teacher"){
+      nav.appendChild(a("/teacher/dashboard/","Dashboard"));
+      nav.appendChild(a("/teacher/students/","Students"));
+    }
+    if(role){
+      const lo = a("#","Logout","nav-pill");
+      lo.addEventListener("click", (e)=>{
+        e.preventDefault();
+        localStorage.removeItem("pe_role");
+        localStorage.removeItem("pe_name");
+        localStorage.removeItem("pe_avatar");
+        localStorage.removeItem("pe_disp");
+        location.href="/";
+      });
+      nav.appendChild(lo);
+    }
+  })();
+  </script>
 </body>
 </html>

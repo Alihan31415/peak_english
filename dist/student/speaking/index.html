@@ -12,13 +12,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="/">Peak English</a>
-      <nav class="nav">
-        <a class="nav-link" href="/student/dashboard/">Dashboard</a>
-        <a class="nav-link" href="/student/speaking/">Speaking</a>
-        <a class="nav-link" href="/student/chat/">Chat</a>
-        <a class="nav-link" href="/student/settings/">Settings</a>
-        <a class="nav-pill" href="/" title="Demo logout">Logout</a>
-      </nav>
+      <nav class="nav" id="nav"></nav>
     </div>
   </header>
 
@@ -92,12 +86,12 @@
 
   <script>
   (function(){
+    if(localStorage.getItem("pe_role")!=="student") location.href="/";
     const btn = document.getElementById("micBtn");
     const timer = document.getElementById("timer");
     let down = false;
     let t = 47;
-
-    function fmt(n){ return String(n).padStart(2,0); }
+    function fmt(n){ return String(n).padStart(2,"0"); }
     function render(){
       const m = Math.floor(t/60), s = t%60;
       timer.textContent = `${fmt(m)}:${fmt(s)}`;
@@ -108,20 +102,13 @@
       render();
       if(t>0) setTimeout(tick, 1000);
     }
-
     btn.addEventListener("pointerdown", ()=>{
-      down = true;
-      btn.classList.add("is-down");
-      tick();
+      down = true; btn.classList.add("is-down"); tick();
     });
-    function up(){
-      down = false;
-      btn.classList.remove("is-down");
-    }
+    function up(){ down=false; btn.classList.remove("is-down"); }
     btn.addEventListener("pointerup", up);
     btn.addEventListener("pointercancel", up);
     btn.addEventListener("pointerleave", up);
-
     render();
   })();
   </script>
@@ -129,5 +116,38 @@
 
     </div>
   </main>
+
+  <script>
+  (function(){
+    const role = localStorage.getItem("pe_role") || "";
+    const nav = document.getElementById("nav");
+    function a(h, t, cls){
+      const x=document.createElement("a");
+      x.href=h; x.textContent=t; x.className=cls||"nav-link";
+      return x;
+    }
+    if(role==="student"){
+      nav.appendChild(a("/student/dashboard/","Dashboard"));
+      nav.appendChild(a("/student/speaking/","Speaking"));
+      nav.appendChild(a("/student/chat/","Chat"));
+      nav.appendChild(a("/student/settings/","Settings"));
+    } else if(role==="teacher"){
+      nav.appendChild(a("/teacher/dashboard/","Dashboard"));
+      nav.appendChild(a("/teacher/students/","Students"));
+    }
+    if(role){
+      const lo = a("#","Logout","nav-pill");
+      lo.addEventListener("click", (e)=>{
+        e.preventDefault();
+        localStorage.removeItem("pe_role");
+        localStorage.removeItem("pe_name");
+        localStorage.removeItem("pe_avatar");
+        localStorage.removeItem("pe_disp");
+        location.href="/";
+      });
+      nav.appendChild(lo);
+    }
+  })();
+  </script>
 </body>
 </html>
