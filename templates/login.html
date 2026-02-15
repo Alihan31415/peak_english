@@ -2,15 +2,11 @@
 {% block content %}
 <section class="hero">
   <div class="hero-card">
-    <div class="hero-badge">Black & White • Mobile-first • Wide layout</div>
+    <div class="hero-badge">Demo • Static build (Cloudflare Pages)</div>
     <h1 class="hero-title">Sign in</h1>
-    <p class="hero-sub">Teacher creates students. Student practices speaking + chat + settings (MVP).</p>
+    <p class="hero-sub">Static demo: no real server login. Redirects locally.</p>
 
-    {% if error %}
-      <div class="alert">{{ error }}</div>
-    {% endif %}
-
-    <form method="post" action="/login" class="form">
+    <form class="form" id="loginForm">
       <label class="lbl">Username</label>
       <input class="input" name="username" autocomplete="username" required>
 
@@ -21,7 +17,7 @@
     </form>
 
     <div class="hint">
-      Default accounts:
+      Demo accounts:
       <div class="chips">
         <span class="chip">teacher / teacher123</span>
         <span class="chip">student / student123</span>
@@ -29,4 +25,18 @@
     </div>
   </div>
 </section>
+
+<script>
+(function(){
+  const form = document.getElementById("loginForm");
+  form.addEventListener("submit", (e)=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const u = String(fd.get("username") || "").trim().toLowerCase();
+    // demo routing
+    if (u === "teacher") location.href = "/teacher/dashboard/";
+    else location.href = "/student/dashboard/";
+  });
+})();
+</script>
 {% endblock %}
